@@ -5,7 +5,7 @@ iend = parse(Int, ARGS[2])
 mesh_type = ARGS[3]
 
 timelog = open("times/time$istart.log", "w")
-errorslog = open("errors$istart.log", "w")
+errorslog = open("errors/errors$istart.log", "w")
 tic()
 for i = istart:iend
 

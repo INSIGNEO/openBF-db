@@ -2,3 +2,5 @@
 errors*
 model_input.txt
 parameters/parameters.txt
+times/*
+reference/*

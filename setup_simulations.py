@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # Latin hypercube design with N samples
     if not os.path.isfile("model_input.txt"):
         params_file = "parameters/parameters.txt"
-        N = 1
+        N = 5000
         params = read_param_file(params_file)
         design = latin.sample(params, N)
         np.savetxt("model_input.txt", design, delimiter=' ')
@@ -98,21 +98,24 @@ if __name__ == "__main__":
     os.chdir("results-"+mesh_type)
 
     for i in range(design.shape[0]):
-    	d = design[i, :]
 
-    	# create simulation subfolder
-    	idx = str(i+1)
-    	try:
-    		os.mkdir(idx)
-    	except:
-    		pass
+        if not i%100: print(i)
 
-    	os.chdir(idx)
+        d = design[i, :]
 
-    	writeModelCSV(idx, template, d, mesh_type)
-    	writeConstants(idx, d)
+        # create simulation subfolder
+        idx = str(i+1)
+        try:
+        	os.mkdir(idx)
+        except:
+        	pass
 
-    	os.system("cp ../../_inlet.dat %s" %(idx+"_inlet.dat"))
+        os.chdir(idx)
 
-    	os.chdir("..")
+        writeModelCSV(idx, template, d, mesh_type)
+        writeConstants(idx, d)
+
+        os.system("cp ../../_inlet.dat %s" %(idx+"_inlet.dat"))
+
+        os.chdir("..")
     os.chdir("..")
