@@ -85,7 +85,7 @@ arteries = ["1_aortic_arch_I", "2_brachiocephalic_trunk", "3_subclavian_R_I", "4
 from bokeh.io import curdoc
 from bokeh.layouts import row, widgetbox
 from bokeh.models import ColumnDataSource
-from bokeh.models.widgets import Slider, Button
+from bokeh.models.widgets import Slider, Button, RadioGroup
 from bokeh.plotting import figure
 
 # Set up data
@@ -118,7 +118,7 @@ def save_waveform():
     a = int(artery.value)
     b = int(locatn.value)
     c = int(r_case.value)
-    
+
     Q1 = Q.loc[(Q['Artery']==arteries[a]) & (Q['Location']==b)]
     y = Q1.loc[Q1.index==Q1.index[c], 'Waveform'][Q1.index[c]]
     np.savetxt("waveform.txt", y)
@@ -130,11 +130,7 @@ artery = Slider(title="Artery", value=0, start=0, end=len(arteries), step=1)
 locatn = Slider(title="Location", value=1, start=1, end=5, step=1)
 r_case = Slider(title="Case", value=0, start=0, end=len(Q1.index), step=1)
 
-# Set up callbacks
-# def update_title(attrname, old, new):
-#     plot.title.text = text.value
-#
-# text.on_change('value', update_title)
+radio_group = RadioGroup(labels=["SI units", "Clinical units"], active=0)
 
 def update_data(attrname, old, new):
 
@@ -142,23 +138,45 @@ def update_data(attrname, old, new):
     a = int(artery.value)
     b = int(locatn.value)
     c = int(r_case.value)
+    u = radio_group.active
 
     # Generate the new curve
     x = np.linspace(0, 1, 100)
     Q1 = Q.loc[(Q['Artery']==arteries[a]) & (Q['Location']==b)]
     y = Q1.loc[Q1.index==Q1.index[c], 'Waveform'][Q1.index[c]]
+    if u: y *= 1e6
 
-    source.data = dict(x=x, y=y)
+    # source.data = dict(x=x, y=y)
+    # plot.title.text = arteries[a]
+
+# for w in [artery, locatn, r_case]:
+#     w.on_change('value', update_data)
+
+def plot_wave():
+    # Get the current slider values
+    a = int(artery.value)
+    b = int(locatn.value)
+    c = int(r_case.value)
+    u = radio_group.active
+
+    # Generate the new curve
+    x = np.linspace(0, 1, 100)
+    Q1 = Q.loc[(Q['Artery']==arteries[a]) & (Q['Location']==b)]
+    y = Q1.loc[Q1.index==Q1.index[c], 'Waveform'][Q1.index[c]]
+    if u:
+        yy = y*1e6
+    else:
+        yy = y
+
+    source.data = dict(x=x, y=yy)
     plot.title.text = arteries[a]
 
-
-
-for w in [artery, locatn, r_case]:
-    w.on_change('value', update_data)
+button_plot = Button(label="Plot", button_type="success")
+button_plot.on_click(plot_wave)
 
 # Set up layouts and add to document
 # inputs = widgetbox(text, offset)#, amplitude, phase, freq)
-inputs = widgetbox(artery, locatn, r_case, button)
+inputs = widgetbox(artery, locatn, r_case, radio_group, button, button_plot)
 
 curdoc().add_root(row(inputs, plot, width=800))
 curdoc().title = "Sliders"
