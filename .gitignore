@@ -4,3 +4,5 @@ model_input.txt
 parameters/parameters.txt
 times/*
 reference/*
+postprocessing/sara/*
+postprocessing/sharc/*
