@@ -16,3 +16,9 @@ $ qsub run_array.sh
 ```
 
 - Wait...
+
+### Results
+
+Explore the dataset with the interactive GUI (tbf)
+
+![img](gui.png)
