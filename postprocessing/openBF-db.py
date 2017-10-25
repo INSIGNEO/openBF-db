@@ -9,6 +9,7 @@ import pandas as pd
 Q = pd.read_pickle("sharc/Qe.pkl")
 P = pd.read_pickle("sharc/Pe.pkl")
 u = pd.read_pickle("sharc/ue.pkl")
+A = pd.read_pickle("sharc/Ae.pkl")
 t = pd.read_pickle("sharc/t3.pkl")
 # Q = Q.drop(Q[Q.Waveform == "NaN"].index)
 # Q = Q.loc[Q['Artery'] == "1_aortic_arch_I"]
@@ -43,22 +44,23 @@ arteries = ["1_aortic_arch_I", "2_brachiocephalic_trunk", "3_subclavian_R_I",
   "75_internal_carotid_II_R",
   "76_middle_cerebral_R", "77_anterior_cerebral_I_R"]
 
-# elastic_arteries = ["1_aortic_arch_I", "2_brachiocephalic_trunk", "3_subclavian_R_I",
-#   "13_aortic_arch_II", "17_aortic_arch_III", "18_subclavian_L_I", "25_aortic_arch_IV",
-#   "29_thoracic_aorta_III", "31_thoracic_aorta_IV", "33_thoracic_aorta_V"]
-#
-# u = u.drop(u[u.Waveform == "NaN"].index)
-# u3 = u.drop(u[u.Location !=3].index)
-# u3['Elastic'] = u3['Location']
+elastic_arteries = ["1_aortic_arch_I", "2_brachiocephalic_trunk", "3_subclavian_R_I",
+  "13_aortic_arch_II", "17_aortic_arch_III", "18_subclavian_L_I", "25_aortic_arch_IV",
+  "29_thoracic_aorta_III", "31_thoracic_aorta_IV", "33_thoracic_aorta_V"]
+
+# c = pd.read_pickle("sharc/c.pkl")
+# c = c.drop(c[c.Waveform == "NaN"].index)
+# c3 = c.drop(c[c.Location !=3].index)
+# c3['Elastic'] = c3['Location']
 # count = 0
-# for i in u3.index:
+# for i in c3.index:
 #     if not count%1000: print(i)
 #     count += 1
-#     if u3['Artery'][i] in elastic_arteries:
-#         u3.at[i, 'Elastic'] = 1
+#     if c3['Artery'][i] in elastic_arteries:
+#         c3.at[i, 'Elastic'] = 1
 #     else:
-#         u3.at[i, 'Elastic'] = 0
-# u3.to_pickle("sharc/ue.pkl")
+#         c3.at[i, 'Elastic'] = 0
+# c3.to_pickle("sharc/ce.pkl")
 
 arteries_labels = []
 arteries_menu = []
@@ -78,7 +80,17 @@ c = 0
 dropdown = Dropdown(label="Select an artery and click plot", button_type="warning",
                     menu=arteries_menu)
 def change_dropdown_label(attr, old, new):
-    dropdown.label = arteries_menu[int(dropdown.value.split("_")[0])-1][0]
+
+    if dropdown.value.split("_")[0] == "20a":
+        idx = 19
+    elif dropdown.value.split("_")[0] == "20b":
+        idx = 20
+    elif int(dropdown.value.split("_")[0]) <= 19:
+        idx = int(dropdown.value.split("_")[0])-1
+    else:
+        idx = int(dropdown.value.split("_")[0])
+
+    dropdown.label = arteries_menu[idx][0]
     dropdown.button_type = "default"
 dropdown.on_change('value', change_dropdown_label)
 
@@ -129,11 +141,20 @@ def save_waveform():
         x = t.loc[t.Case==u1.Case[case], 'Waveform'][idx]
         x -= x[0]
 
+    elif q == 3:
+        A1 = A.loc[A['Artery'] == artery]
+        case = A1.index[c]
+        y = A1.loc[A1.index == case, 'Waveform'][case]
+
+        idx = t.loc[t.Case==A1.Case[case], 'Waveform'].index[0]
+        x = t.loc[t.Case==A1.Case[case], 'Waveform'][idx]
+        x -= x[0]
+
     r = np.zeros((len(x), 2))
     r[:,0] = x
     r[:,1] = y
 
-    qs = ["Q", "P", "u"]
+    qs = ["Q", "P", "u", "A"]
     np.savetxt("{0}_waveform_{1}_case-{2}.txt".format(qs[q], artery, case), r)
 
 button_download = Button(label="Download waveform (SI units)", button_type="default")
@@ -147,7 +168,8 @@ r_case = Slider(title="Case", value=0, start=0, end=len(Q1.index)-1, step=1)
 radio_group = RadioGroup(labels=["SI units", "Clinical units"], active=0)
 # radio_group_q = RadioGroup(labels=["Flow Q", "Pressure P"], active=0)
 
-radio_group_q = RadioButtonGroup(labels=["Flow Q", "Pressure P", "Velocity u"], active=0)
+radio_group_q = RadioButtonGroup(labels=["Flow", "Pressure",
+                                        "Velocity", "Area"], active=0)
 
 def plot_wave():
     # Get the current slider values
@@ -186,6 +208,15 @@ def plot_wave():
         x = t.loc[t.Case==u1.Case[case], 'Waveform'][idx]
         x -= x[0]
 
+    elif q == 3:
+        A1 = A.loc[A['Artery'] == a]
+        case = A1.index[c]
+        y = A1.loc[A1.index == case, 'Waveform'][case]
+
+        idx = t.loc[t.Case==A1.Case[case], 'Waveform'].index[0]
+        x = t.loc[t.Case==A1.Case[case], 'Waveform'][idx]
+        x -= x[0]
+
     if units == 1:
         if q == 0:
             yy = y*1e6
@@ -196,6 +227,9 @@ def plot_wave():
         elif q == 2:
             yy = y*100
             plot.yaxis.axis_label = "Velocity P (cm/s)"
+        elif q == 3:
+            yy = y*100*100
+            plot.yaxis.axis_label = "Velocity P (cm^2)"
     else:
         if q == 0:
             yy = y
@@ -206,10 +240,24 @@ def plot_wave():
         elif q == 2:
             yy = y
             plot.yaxis.axis_label = "Pressure P (m/s)"
+        elif q == 3:
+            yy = y
+            plot.yaxis.axis_label = "Area A (m^2)"
 
     source.data = dict(x=x, y=yy)
-    qs = ["Volumetric flow rate", "Transmural pressure", "Blood velocity"]
-    plot.title.text = "{0} - {1}".format(arteries_menu[int(a.split('_')[0])-1][0], qs[q])
+    qs = ["Volumetric flow rate", "Transmural pressure",
+            "Blood velocity", "Cross-sectional area"]
+
+    if a.split("_")[0] == "20a":
+        idx = 19
+    elif a.split("_")[0] == "20b":
+        idx = 20
+    elif int(a.split("_")[0]) <= 19:
+        idx = int(a.split("_")[0])-1
+    else:
+        idx = int(a.split("_")[0])
+
+    plot.title.text = "{0} - {1}".format(arteries_menu[idx][0], qs[q])
 
 
 button_plot = Button(label="Plot", button_type="success")
