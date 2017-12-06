@@ -1,0 +1,6 @@
+julia 0.6.0
+openBF 0.6.2
+python 2/3
+numpy
+SALib
+pandas
