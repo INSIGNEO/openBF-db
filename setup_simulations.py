@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # Latin hypercube design with N samples
     if not os.path.isfile("model_input.txt"):
         params_file = "parameters/parameters.txt"
-        N = sys.argv[1]
+        N = np.int(sys.argv[1])
         params = read_param_file(params_file)
         design = latin.sample(params, N)
         np.savetxt("model_input.txt", design, delimiter=' ')
