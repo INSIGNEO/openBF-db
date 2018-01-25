@@ -35,7 +35,7 @@ This will generate a folder with as many input sub-folder as `N`.
 - Simulations can be run as
 
 ```bash
-$ julia run_simulations.jl 1 <N>
+$ julia run_simulations.jl 1 <N> <mesh-type, default=normal>
 ```
 
 Alternatively, on SGE systems, use the batch script
