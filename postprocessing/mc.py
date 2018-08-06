@@ -82,6 +82,7 @@ def reflection_coeff(Adp, Ad1, Ad2, cdp, cd1, cd2, rho):
 
     return n/d
 
+no_case = []
 for w, wa, w1, w2, wabd, c1, c2, cabd, case in zip(P_brachial.Waveform, P_aorta.Waveform,
                                 A_il1.Waveform, A_il2.Waveform, A_abd.Waveform,
                                 c_il1.Waveform, c_il2.Waveform, c_abd.Waveform,
@@ -104,6 +105,7 @@ for w, wa, w1, w2, wabd, c1, c2, cabd, case in zip(P_brachial.Waveform, P_aorta.
     Rf = reflection_coeff(Adp, Ad1, Ad2, cdp, cd1, cd2, rho)
 
     if DBP < 40 or SBP > 200 or BPP < 25 or BPP > 100 or np.abs(Rf) > 0.3:
+        no_case.append(case)
         continue
 
     DBPa = np.min(wa)/133.332
